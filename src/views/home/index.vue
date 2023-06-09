@@ -283,6 +283,7 @@ function downloadPro(progressEvent) {
           msgBuffer = []
         } else {
           // 每一段数据结束时，更新缓存，减去最后三个数据分段占位符
+          // 此时index不变，所以在下一次定时任务中index不会进入else而增加
           indexCache = index - 3
         }
       } else {
