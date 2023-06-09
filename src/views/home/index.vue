@@ -238,7 +238,7 @@ async function send() {
     return;
   }
 }
-let msgBuffer
+let msgBuffer //字符串缓存，用于打字机效果展示
 let index = 0, interval
 let isOver = false
 //流式处理
@@ -271,6 +271,7 @@ function downloadPro(progressEvent) {
 
   msgBuffer = parts[0]
   if (index === 0) {
+    // 定时输出字符串，实现打字机效果
     interval = setInterval(() => {
       // 缓存输完时判断，不能是=，如果是等于，就是在最后一个文字进行判断，会导致文本位置错乱
       if (index > msgBuffer.length) {
