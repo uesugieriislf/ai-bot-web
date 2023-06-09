@@ -116,7 +116,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, watch, watchEffect } from "vue";
+import { ref, onMounted, nextTick, watch, watchEffect, render } from "vue";
 //组件
 import CopyIconElePc from "@/components/CopyIconElePc.vue";
 import TopTitle from "@/components/TopTitle.vue";
@@ -238,9 +238,9 @@ async function send() {
     return;
   }
 }
-const msgBuffer = []
-let index = 0
-
+let msgBuffer
+let index = 0, interval
+let isOver = false
 //流式处理
 function downloadPro(progressEvent) {
   const xhr = progressEvent.event.target;
@@ -262,19 +262,43 @@ function downloadPro(progressEvent) {
     console.log('id', conversationId.value);
     localStorage.setItem('conversationId', conversationId.value)
   }
-
-  console.log('parts[0]', parts[0])
-  if (parts[0].indexOf("```") !== -1) {
-    list.value[list.value.length - 1].text = md.render(parts[0]);
+  if (parts[1]) {
+    isOver = true
   } else {
-    list.value[list.value.length - 1].text = parts[0];
+    isOver = false
   }
+
+  msgBuffer = parts[0]
+  if (index === 0) {
+    interval = setInterval(() => {
+      if (!isOver) {
+        if (index >= msgBuffer.length) {
+          clearInterval(interval)
+          index = 0
+          msgBuffer = []
+        } else {
+          console.log('index', index);
+          console.log('str', msgBuffer);
+          let renderStr = msgBuffer.slice(index, index + 1)
+          console.log('renderStr', renderStr);
+          if (parts[0].indexOf("```") !== -1) {
+            list.value[list.value.length - 1].text += md.render(renderStr);
+          } else {
+            list.value[list.value.length - 1].text += renderStr;
+          }
+          index++
+        }
+      }
+    }, 50);
+  }
+
   loading.value = false;
   setScreen();
 }
 
 //发送消息适配PC或phone
 function handleEnter(e) {
+  console.log('handleEnter', e);
   if (e.key === "Enter" && !isMobile.value && !e.shiftKey) {
     send();
   }
