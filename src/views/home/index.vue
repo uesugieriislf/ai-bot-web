@@ -274,6 +274,7 @@ function downloadPro(progressEvent) {
   if (index === 0) {
     // 定时输出字符串，实现打字机效果
     interval = setInterval(() => {
+      console.log('in', interval);
       // 缓存输完时判断，不能是=，如果是等于，就是在最后一个文字进行判断，会导致文本位置错乱
       if (index > msgBuffer.length) {
         // 只有传输完成时，才会还原
@@ -289,26 +290,33 @@ function downloadPro(progressEvent) {
       } else {
         // 有缓存index，则使用缓存，说明不是第一段数据
         if (indexCache) {
+          // 开始新的分段数据渲染时，删除上一分段的占位符
+          let text = list.value[list.value.length - 1].text
+          list.value[list.value.length - 1].text = text.slice(0, text.length - 2)
           index = indexCache
         }
         // 缓存还原，消除缓存影响
         indexCache = 0
         // 获取当前index的文字
         let renderStr = msgBuffer.slice(index, index + 1)
-        console.log('index：%s-renderStr-%s', index, JSON.stringify(renderStr));
+        // console.log('index：%s-renderStr-%s', index, JSON.stringify(renderStr));
         if (parts[0].indexOf("```") !== -1) {
+          // md文档渲染
           list.value[list.value.length - 1].text += md.render(renderStr);
         } else {
           list.value[list.value.length - 1].text += renderStr;
         }
         index++
+        // 滚动屏幕
+        setScreen();
+
       }
 
     }, 50);
   }
 
   loading.value = false;
-  setScreen();
+  // setScreen();
 }
 
 //发送消息适配PC或phone
@@ -339,6 +347,8 @@ function handleCancel() {
 
 //判断是否滚动到顶部或底部
 function setScreen(keyboardHeight = 0) {
+  console.log('s');
+  // console.trace()
   nextTick(() => {
     setTimeout(() => {
 
