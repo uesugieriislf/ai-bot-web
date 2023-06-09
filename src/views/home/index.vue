@@ -240,6 +240,7 @@ async function send() {
 }
 let msgBuffer //字符串缓存，用于打字机效果展示
 let index = 0, interval
+let indexCache = 0
 let isOver = false
 //流式处理
 function downloadPro(progressEvent) {
@@ -281,15 +282,19 @@ function downloadPro(progressEvent) {
           index = 0
           msgBuffer = []
         } else {
-          // 每次不完整的片段结尾是两个回车，要消除影响
-          index -= 2
+          // 每一段数据结束时，更新缓存，减去最后三个数据分段占位符
+          indexCache = index - 3
         }
       } else {
-        console.log('index', index);
-        // console.log('str', msgBuffer);
+        // 有缓存index，则使用缓存，说明不是第一段数据
+        if (indexCache) {
+          index = indexCache
+        }
+        // 缓存还原，消除缓存影响
+        indexCache = 0
         // 获取当前index的文字
         let renderStr = msgBuffer.slice(index, index + 1)
-        console.log('renderStr', renderStr);
+        console.log('index：%s-renderStr-%s', index, JSON.stringify(renderStr));
         if (parts[0].indexOf("```") !== -1) {
           list.value[list.value.length - 1].text += md.render(renderStr);
         } else {
