@@ -262,6 +262,7 @@ function downloadPro(progressEvent) {
     console.log('id', conversationId.value);
     localStorage.setItem('conversationId', conversationId.value)
   }
+  // 判断是否传输完成
   if (parts[1]) {
     isOver = true
   } else {
@@ -271,24 +272,31 @@ function downloadPro(progressEvent) {
   msgBuffer = parts[0]
   if (index === 0) {
     interval = setInterval(() => {
-      if (!isOver) {
-        if (index >= msgBuffer.length) {
+      // 缓存输完时判断，不能是=，如果是等于，就是在最后一个文字进行判断，会导致文本位置错乱
+      if (index > msgBuffer.length) {
+        // 只有传输完成时，才会还原
+        if (isOver) {
           clearInterval(interval)
           index = 0
           msgBuffer = []
         } else {
-          console.log('index', index);
-          console.log('str', msgBuffer);
-          let renderStr = msgBuffer.slice(index, index + 1)
-          console.log('renderStr', renderStr);
-          if (parts[0].indexOf("```") !== -1) {
-            list.value[list.value.length - 1].text += md.render(renderStr);
-          } else {
-            list.value[list.value.length - 1].text += renderStr;
-          }
-          index++
+          // 每次不完整的片段结尾是两个回车，要消除影响
+          index -= 2
         }
+      } else {
+        console.log('index', index);
+        // console.log('str', msgBuffer);
+        // 获取当前index的文字
+        let renderStr = msgBuffer.slice(index, index + 1)
+        console.log('renderStr', renderStr);
+        if (parts[0].indexOf("```") !== -1) {
+          list.value[list.value.length - 1].text += md.render(renderStr);
+        } else {
+          list.value[list.value.length - 1].text += renderStr;
+        }
+        index++
       }
+
     }, 50);
   }
 
